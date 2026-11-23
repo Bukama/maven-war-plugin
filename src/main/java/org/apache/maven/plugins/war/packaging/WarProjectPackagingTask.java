@@ -26,6 +26,7 @@ import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.war.Overlay;
+import org.apache.maven.plugins.war.util.DirectoryUtils;
 import org.apache.maven.plugins.war.util.PathSet;
 import org.apache.maven.shared.filtering.MavenFilteringException;
 import org.codehaus.plexus.util.DirectoryScanner;
@@ -54,9 +55,9 @@ public class WarProjectPackagingTask extends AbstractWarPackagingTask {
     private Overlay currentProjectOverlay;
 
     /**
-     * @param webResources {@link #webResources}
-     * @param webXml {@link #webXml}
-     * @param containerConfigXml {@link #containerConfigXML}
+     * @param webResources          {@link #webResources}
+     * @param webXml                {@link #webXml}
+     * @param containerConfigXml    {@link #containerConfigXML}
      * @param currentProjectOverlay {@link #currentProjectOverlay}
      */
     public WarProjectPackagingTask(
@@ -78,9 +79,9 @@ public class WarProjectPackagingTask extends AbstractWarPackagingTask {
 
         // Prepare the INF directories
         File webinfDir = new File(context.getWebappDirectory(), WEB_INF_PATH);
-        webinfDir.mkdirs();
+        DirectoryUtils.createDirectoryIfNotExists(webinfDir.toPath());
         File metainfDir = new File(context.getWebappDirectory(), META_INF_PATH);
-        metainfDir.mkdirs();
+        DirectoryUtils.createDirectoryIfNotExists(metainfDir.toPath());
 
         handleWebResources(context);
 
@@ -192,12 +193,12 @@ public class WarProjectPackagingTask extends AbstractWarPackagingTask {
      * Handles the deployment descriptors, if specified. Note that the behavior here is slightly different since the
      * customized entry always win, even if an overlay has already packaged a web.xml previously.
      *
-     * @param context the packaging context
-     * @param webinfDir the web-inf directory
-     * @param metainfDir the meta-inf directory
+     * @param context             the packaging context
+     * @param webinfDir           the web-inf directory
+     * @param metainfDir          the meta-inf directory
      * @param failOnMissingWebXml if build should fail if web.xml is not found
      * @throws MojoExecutionException if an error occurred while copying the descriptors
-     * @throws MojoFailureException if the web.xml is specified but does not exist and failOnMissingWebXml is true
+     * @throws MojoFailureException   if the web.xml is specified but does not exist and failOnMissingWebXml is true
      */
     protected void handleDeploymentDescriptors(
             WarPackagingContext context, File webinfDir, File metainfDir, Boolean failOnMissingWebXml)
@@ -274,9 +275,9 @@ public class WarProjectPackagingTask extends AbstractWarPackagingTask {
     /**
      * Copies webapp webResources from the specified directory.
      *
-     * @param context the WAR packaging context to use
+     * @param context  the WAR packaging context to use
      * @param resource the resource to copy
-     * @throws IOException if an error occurred while copying the resources
+     * @throws IOException            if an error occurred while copying the resources
      * @throws MojoExecutionException if an error occurred while retrieving the filter properties
      */
     public void copyResources(WarPackagingContext context, Resource resource)

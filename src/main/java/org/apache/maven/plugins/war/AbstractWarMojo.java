@@ -47,6 +47,7 @@ import org.apache.maven.plugins.war.packaging.OverlayPackagingTask;
 import org.apache.maven.plugins.war.packaging.WarPackagingContext;
 import org.apache.maven.plugins.war.packaging.WarPackagingTask;
 import org.apache.maven.plugins.war.packaging.WarProjectPackagingTask;
+import org.apache.maven.plugins.war.util.DirectoryUtils;
 import org.apache.maven.plugins.war.util.WebappStructure;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.filtering.FilterWrapper;
@@ -343,7 +344,7 @@ public abstract class AbstractWarMojo extends AbstractMojo {
 
     /**
      * Path prefix for resources that will be checked against outdated content.
-     *
+     * <p>
      * Starting with <b>3.3.2</b>, if a value of "/" is specified the entire
      * webappDirectory will be checked, i.e. the "/" signifies "root".
      *
@@ -457,10 +458,10 @@ public abstract class AbstractWarMojo extends AbstractMojo {
     /**
      * @param webapplicationDirectory the web application directory
      * @throws MojoExecutionException in case of failure
-     * @throws MojoFailureException in case of failure
+     * @throws MojoFailureException   in case of failure
      */
     public void buildExplodedWebapp(File webapplicationDirectory) throws MojoExecutionException, MojoFailureException {
-        webapplicationDirectory.mkdirs();
+        DirectoryUtils.createDirectoryIfNotExists(webapplicationDirectory.toPath());
 
         try {
             buildWebapp(project, webapplicationDirectory);
@@ -473,11 +474,11 @@ public abstract class AbstractWarMojo extends AbstractMojo {
      * Builds the webapp for the specified project with the new packaging task thingy.
      * Classes, libraries and tld files are copied to the {@code webappDirectory} during this phase.
      *
-     * @param mavenProject the maven project
+     * @param mavenProject            the maven project
      * @param webapplicationDirectory the target directory
-     * @throws IOException if an error occurred while copying the files
+     * @throws IOException            if an error occurred while copying the files
      * @throws MojoExecutionException if an error occurred while packaging the webapp
-     * @throws MojoFailureException if an unexpected error occurred while packaging the webapp
+     * @throws MojoFailureException   if an unexpected error occurred while packaging the webapp
      */
     public void buildWebapp(MavenProject mavenProject, File webapplicationDirectory)
             throws MojoExecutionException, MojoFailureException, IOException {
@@ -597,17 +598,17 @@ public abstract class AbstractWarMojo extends AbstractMojo {
         private final String outputTimestamp;
 
         /**
-         * @param webappDirectory the web application directory
-         * @param webappStructure the web app structure
-         * @param overlayManager the overlay manager
-         * @param filterWrappers the filter wrappers
-         * @param nonFilteredFileExtensions the non filtered file extensions
+         * @param webappDirectory                the web application directory
+         * @param webappStructure                the web app structure
+         * @param overlayManager                 the overlay manager
+         * @param filterWrappers                 the filter wrappers
+         * @param nonFilteredFileExtensions      the non filtered file extensions
          * @param filteringDeploymentDescriptors the filtering deployment descriptors
-         * @param artifactHandlerManager the artifact handler manager
-         * @param resourceEncoding the resource encoding
-         * @param propertiesEncoding the encoding to use for properties files
-         * @param failOnMissingWebXml flag to check whether we should ignore missing web.xml or not
-         * @param outputTimestamp the output timestamp for reproducible archive creation
+         * @param artifactHandlerManager         the artifact handler manager
+         * @param resourceEncoding               the resource encoding
+         * @param propertiesEncoding             the encoding to use for properties files
+         * @param failOnMissingWebXml            flag to check whether we should ignore missing web.xml or not
+         * @param outputTimestamp                the output timestamp for reproducible archive creation
          */
         @SuppressWarnings("checkstyle:ParameterNumber")
         DefaultWarPackagingContext(

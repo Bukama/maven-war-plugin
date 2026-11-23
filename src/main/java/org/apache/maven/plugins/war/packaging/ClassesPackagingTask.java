@@ -27,13 +27,14 @@ import org.apache.maven.artifact.handler.manager.ArtifactHandlerManager;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.war.Overlay;
 import org.apache.maven.plugins.war.util.ClassesPackager;
+import org.apache.maven.plugins.war.util.DirectoryUtils;
 import org.apache.maven.plugins.war.util.PathSet;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.interpolation.InterpolationException;
 
 /**
  * Handles the classes directory that needs to be packaged in the web application.
- *
+ * <p>
  * Based on the {@link WarPackagingContext#archiveClasses()} flag, the resources are either copied into to
  * {@code WEB-INF/classes} directory or archived in a jar within the {@code WEB-INF/lib} directory.
  *
@@ -52,9 +53,8 @@ public class ClassesPackagingTask extends AbstractWarPackagingTask {
     @Override
     public void performPackaging(WarPackagingContext context) throws MojoExecutionException {
         final File webappClassesDirectory = new File(context.getWebappDirectory(), CLASSES_PATH);
-        if (!webappClassesDirectory.exists()) {
-            webappClassesDirectory.mkdirs();
-        }
+
+        DirectoryUtils.createDirectoryIfNotExists(webappClassesDirectory.toPath());
 
         if (context.getClassesDirectory().exists()
                 && !context.getClassesDirectory().equals(webappClassesDirectory)) {

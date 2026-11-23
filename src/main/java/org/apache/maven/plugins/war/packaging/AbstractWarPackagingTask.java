@@ -21,12 +21,14 @@ package org.apache.maven.plugins.war.packaging;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 
 import org.apache.commons.io.input.XmlStreamReader;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.war.util.DirectoryUtils;
 import org.apache.maven.plugins.war.util.PathSet;
 import org.apache.maven.plugins.war.util.WebappStructure;
 import org.apache.maven.shared.filtering.MavenFilteringException;
@@ -71,21 +73,21 @@ public abstract class AbstractWarPackagingTask implements WarPackagingTask {
 
     /**
      * Copies the files if possible with an optional target prefix.
-     *
+     * <p>
      * Copy uses a first-win strategy: files that have already been copied by previous tasks are ignored. This method
      * makes sure to update the list of protected files which gives the list of files that have already been copied.
-     *
+     * <p>
      * If the structure of the source directory is not the same as the root of the webapp, use the {@code targetPrefix}
      * parameter to specify in which particular directory the files should be copied. Use {@code null} to copy the
      * files with the same structure.
      *
-     * @param sourceId the source id
-     * @param context the context to use
-     * @param sourceBaseDir the base directory from which the {@code sourceFilesSet} will be copied
+     * @param sourceId       the source id
+     * @param context        the context to use
+     * @param sourceBaseDir  the base directory from which the {@code sourceFilesSet} will be copied
      * @param sourceFilesSet the files to be copied
-     * @param targetPrefix the prefix to add to the target file name
-     * @param filtered filter or not
-     * @throws IOException if an error occurred while copying the files
+     * @param targetPrefix   the prefix to add to the target file name
+     * @param filtered       filter or not
+     * @throws IOException            if an error occurred while copying the files
      * @throws MojoExecutionException if an error occurs
      */
     protected void copyFiles(
@@ -116,16 +118,16 @@ public abstract class AbstractWarPackagingTask implements WarPackagingTask {
 
     /**
      * Copies the files if possible as is.
-     *
+     * <p>
      * Copy uses a first-win strategy: files that have already been copied by previous tasks are ignored. This method
      * makes sure to update the list of protected files which gives the list of files that have already been copied.
      *
-     * @param sourceId the source id
-     * @param context the context to use
-     * @param sourceBaseDir the base directory from which the {@code sourceFilesSet} will be copied
+     * @param sourceId       the source id
+     * @param context        the context to use
+     * @param sourceBaseDir  the base directory from which the {@code sourceFilesSet} will be copied
      * @param sourceFilesSet the files to be copied
-     * @param filtered filter or not
-     * @throws IOException if an error occurred while copying the files
+     * @param filtered       filter or not
+     * @throws IOException            if an error occurred while copying the files
      * @throws MojoExecutionException break the build
      */
     protected void copyFiles(
@@ -136,12 +138,12 @@ public abstract class AbstractWarPackagingTask implements WarPackagingTask {
 
     /**
      * Copy the specified file if the target location has not yet already been used.
-     *
+     * <p>
      * The {@code targetFileName} is the relative path according to the root of the generated web application.
      *
-     * @param sourceId the source id
-     * @param context the context to use
-     * @param file the file to copy
+     * @param sourceId       the source id
+     * @param context        the context to use
+     * @param file           the file to copy
      * @param targetFilename the relative path according to the root of the webapp
      * @throws IOException if an error occurred while copying
      */
@@ -228,15 +230,15 @@ public abstract class AbstractWarPackagingTask implements WarPackagingTask {
     /**
      * Copy the specified file if the target location has not yet already been used and filter its content with the
      * configured filter properties.
-     *
+     * <p>
      * The {@code targetFileName} is the relative path according to the root of the generated web application.
      *
-     * @param sourceId the source id
-     * @param context the context to use
-     * @param file the file to copy
+     * @param sourceId       the source id
+     * @param context        the context to use
+     * @param file           the file to copy
      * @param targetFilename the relative path according to the root of the webapp
      * @return true if the file has been copied, false otherwise
-     * @throws IOException if an error occurred while copying
+     * @throws IOException            if an error occurred while copying
      * @throws MojoExecutionException if an error occurred while retrieving the filter properties
      */
     protected boolean copyFilteredFile(
@@ -259,8 +261,9 @@ public abstract class AbstractWarPackagingTask implements WarPackagingTask {
                     // For all others we use the configured encoding
                     encoding = context.getResourceEncoding();
                 }
-                // fix for MWAR-36, ensures that the parent dir are created first
-                targetFile.getParentFile().mkdirs();
+                // fix for MWAR-36, ensures that the parent dir is created first
+                final Path parentDir = targetFile.toPath().getParent();
+                DirectoryUtils.createDirectoryIfNotExists(parentDir);
 
                 context.getMavenFileFilter().copyFile(file, targetFile, true, context.getFilterWrappers(), encoding);
             } catch (MavenFilteringException e) {
@@ -281,8 +284,8 @@ public abstract class AbstractWarPackagingTask implements WarPackagingTask {
     /**
      * Unpacks the specified file to the specified directory.
      *
-     * @param context the packaging context
-     * @param file the file to unpack
+     * @param context         the packaging context
+     * @param file            the file to unpack
      * @param unpackDirectory the directory to use for th unpacked file
      * @throws MojoExecutionException if an error occurred while unpacking the file
      */
@@ -314,14 +317,14 @@ public abstract class AbstractWarPackagingTask implements WarPackagingTask {
      * overwritten if it already exists. If the flag is {@code true} destination will be overwritten if it's not up to
      * date.
      *
-     * @param context the packaging context
-     * @param source an existing non-directory <code>File</code> to copy bytes from
-     * @param destination a non-directory <code>File</code> to write bytes to (possibly overwriting)
+     * @param context        the packaging context
+     * @param source         an existing non-directory <code>File</code> to copy bytes from
+     * @param destination    a non-directory <code>File</code> to write bytes to (possibly overwriting)
      * @param targetFilename the relative path of the file from the webapp root directory
      * @param onlyIfModified if true, copy the file only if the source has changed, always copy otherwise
      * @return true if the file has been copied/updated, false otherwise
      * @throws IOException if <code>source</code> does not exist, <code>destination</code> cannot be written to, or an
-     *             IO error occurs during copying
+     *                     IO error occurs during copying
      */
     protected boolean copyFile(
             WarPackagingContext context, File source, File destination, String targetFilename, boolean onlyIfModified)
@@ -385,7 +388,7 @@ public abstract class AbstractWarPackagingTask implements WarPackagingTask {
     /**
      * Returns the file to copy. If the includes are {@code null} or empty, the default includes are used.
      *
-     * @param baseDir the base directory to start from
+     * @param baseDir  the base directory to start from
      * @param includes the includes
      * @param excludes the excludes
      * @return the files to copy
@@ -397,9 +400,9 @@ public abstract class AbstractWarPackagingTask implements WarPackagingTask {
     /**
      * Returns the file to copy. If the includes are {@code null} or empty, the default includes are used.
      *
-     * @param baseDir the base directory to start from
-     * @param includes the includes
-     * @param excludes the excludes
+     * @param baseDir            the base directory to start from
+     * @param includes           the includes
+     * @param excludes           the excludes
      * @param includeDirectories include directories yes or not
      * @return the files to copy
      */
@@ -441,10 +444,10 @@ public abstract class AbstractWarPackagingTask implements WarPackagingTask {
 
     /**
      * Returns the final name of the specified artifact.
-     *
+     * <p>
      * If the {@code outputFileNameMapping} is set, it is used, otherwise the standard naming scheme is used.
      *
-     * @param context the packaging context
+     * @param context  the packaging context
      * @param artifact the artifact
      * @return the converted filename of the artifact
      * @throws InterpolationException in case of interpolation problem
@@ -458,7 +461,7 @@ public abstract class AbstractWarPackagingTask implements WarPackagingTask {
     /**
      * Determine whether a file is of a certain type, by looking at the file extension.
      *
-     * @param file the file to check
+     * @param file      the file to check
      * @param extension the extension for a file type, including the '.'
      * @return <code>true</code> if the file is a file of the specified type, otherwise <code>false</code>
      * @since 3.4.0
@@ -493,7 +496,7 @@ public abstract class AbstractWarPackagingTask implements WarPackagingTask {
     /**
      * Check whether the specified file is excluded or not.
      *
-     * @param targetFilename the target filename
+     * @param targetFilename    the target filename
      * @param packagingIncludes the includes
      * @param packagingExcludes the excludes
      * @return true if the file is excluded
